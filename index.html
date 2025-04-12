@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+  <meta charset="UTF-8">
+  <title>Scraper Kakobuy</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="container">
+    <h1>Scraper Kakobuy 🛒</h1>
+    <form id="scraper-form">
+      <input type="url" id="product-url" placeholder="https://www.kakobuy.com/product/..." required>
+      <button type="submit">Pobierz dane</button>
+    </form>
+    <div id="result" class="hidden">
+      <h2>Wynik:</h2>
+      <p><strong>Cena:</strong> <span id="price">-</span></p>
+      <p><strong>Waga:</strong> <span id="weight">-</span></p>
+      <p><strong>URL:</strong> <a id="url" href="#" target="_blank">-</a></p>
+    </div>
+  </div>
+
+  <script>
+    document.getElementById('scraper-form').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const url = document.getElementById('product-url').value;
+      const resultDiv = document.getElementById('result');
+      
+      resultDiv.classList.add('loading');
+      resultDiv.classList.remove('hidden', 'error');
+
+      try {
+        const response = await fetch('/.netlify/functions/scrape', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ url })
+        });
+        
+        const data = await response.json();
+        
+        if (data.error) throw new Error(data.error);
+        
+        document.getElementById('price').textContent = data.price;
+        document.getElementById('weight').textContent = data.weight;
+        document.getElementById('url').href = data.url;
+        document.getElementById('url').textContent = data.url;
+        resultDiv.classList.remove('loading');
+      } catch (error) {
+        resultDiv.classList.add('error');
+        document.getElementById('price').textContent = `Błąd: ${error.message}`;
+      }
+    });
+  </script>
+</body>
+</html>
