@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+  <meta charset="UTF-8">
+  <title>Scraper Kakobuy</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="container">
+    <h1>Scraper Kakobuy 🛒</h1>
+    <form id="scraper-form">
+      <input type="url" id="product-url" placeholder="https://www.kakobuy.com/product/..." required>
+      <button type="submit">Pobierz dane</button>
+    </form>
+    <div id="result" class="hidden">
+      <h2>Wynik:</h2>
+      <p><strong>Cena:</strong> <span id="price">-</span></p>
+      <p><strong>Waga:</strong> <span id="weight">-</span></p>
+      <p><strong>URL:</strong> <a id="url" href="#" target="_blank">-</a></p>
+    </div>
+  </div>
+
+ <!-- ... (reszta kodu pozostaje bez zmian) ... -->
+    <script>
+    document.getElementById('scraper-form').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const url = document.getElementById('product-url').value;
+    const resultDiv = document.getElementById('result');
+    
+    resultDiv.innerHTML = '<p class="loading">Ładowanie danych...</p>';
+    resultDiv.classList.remove('hidden', 'error');
+
+    try {
+        const response = await fetch('/.netlify/functions/scrape', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ url: url })
+        });
+
+        const data = await response.json();
+        
+        if (!response.ok) {
+        throw new Error(data.error || 'Unknown error');
+        }
+
+        resultDiv.innerHTML = `
+        <h2>Wynik:</h2>
+        <p><strong>Cena:</strong> ${data.price || 'Brak danych'}</p>
+        <p><strong>Waga:</strong> ${data.weight || 'Brak danych'}</p>
+        <p><strong>URL:</strong> <a href="${data.url}" target="_blank">${data.url}</a></p>
+        `;
+    } catch (error) {
+        resultDiv.innerHTML = `
+        <p class="error">Błąd: ${error.message}</p>
+        <p>Sprawdź czy link jest poprawny i spróbuj ponownie</p>
+        `;
+        console.error('Fetch error:', error);
+    }
+    });
+  </script>
+</body>
+</html>
