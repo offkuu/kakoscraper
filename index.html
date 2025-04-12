@@ -20,15 +20,16 @@
     </div>
   </div>
 
-  <script>
+ <!-- ... (reszta kodu pozostaje bez zmian) ... -->
+    <script>
     document.getElementById('scraper-form').addEventListener('submit', async (e) => {
       e.preventDefault();
       const url = document.getElementById('product-url').value;
       const resultDiv = document.getElementById('result');
       
-      resultDiv.classList.add('loading');
+      resultDiv.innerHTML = '<p class="loading">Ładowanie danych...</p>';
       resultDiv.classList.remove('hidden', 'error');
-
+  
       try {
         const response = await fetch('/.netlify/functions/scrape', {
           method: 'POST',
@@ -40,14 +41,18 @@
         
         if (data.error) throw new Error(data.error);
         
-        document.getElementById('price').textContent = data.price;
-        document.getElementById('weight').textContent = data.weight;
-        document.getElementById('url').href = data.url;
-        document.getElementById('url').textContent = data.url;
-        resultDiv.classList.remove('loading');
+        resultDiv.innerHTML = `
+          <h2>Wynik:</h2>
+          <p><strong>Cena:</strong> ${data.price}</p>
+          <p><strong>Waga:</strong> ${data.weight}</p>
+          <p><strong>URL:</strong> <a href="${data.url}" target="_blank">${data.url}</a></p>
+        `;
       } catch (error) {
         resultDiv.classList.add('error');
-        document.getElementById('price').textContent = `Błąd: ${error.message}`;
+        resultDiv.innerHTML = `
+          <p class="error">Błąd: ${error.message}</p>
+          ${data?.debug ? `<p class="debug">${data.debug}</p>` : ''}
+        `;
       }
     });
   </script>
